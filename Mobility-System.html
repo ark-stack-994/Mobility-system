@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mobility">
+<title>Mobility System</title>
+<style>
+:root{
+  --bg:#0d0d0d;--s1:#111;--s2:#181818;--s3:#1e1e1e;
+  --text:#f0ede8;--muted:#666;--dim:#333;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:'Palatino Linotype','Book Antiqua',Palatino,Georgia,serif;
+  min-height:100vh;padding-bottom:100px;}
+
+.hdr{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid #1e1e1e;padding:18px 18px 0;}
+.eyebrow{font-size:9px;letter-spacing:4px;color:#444;text-transform:uppercase;margin-bottom:3px;}
+.ttl{font-size:22px;font-weight:400;letter-spacing:-0.5px;margin-bottom:2px;}
+.sub{font-size:11px;color:#444;font-style:italic;margin-bottom:14px;}
+.nav{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.nav::-webkit-scrollbar{display:none;}
+.nb{flex:0 0 auto;padding:9px 13px;border:none;border-bottom:2px solid transparent;background:transparent;
+  font-family:inherit;font-size:11px;font-weight:400;color:#3a3a3a;cursor:pointer;white-space:nowrap;}
+.nb.on{font-weight:700;}
+
+.content{padding:14px 16px 20px;}
+
+.rmeta{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #1a1a1a;}
+.rlabel{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:2px;}
+.rstats{font-size:11px;color:#555;margin-bottom:6px;}
+.rintro{font-size:12px;color:#777;line-height:1.6;font-style:italic;}
+
+.warnbox{display:flex;gap:8px;align-items:flex-start;background:#1a0f0f;border:1px solid #3a2020;
+  border-radius:9px;padding:10px 12px;margin-bottom:14px;}
+.warnbox .wicon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.warnbox .wtext{font-size:11px;color:#d99;line-height:1.6;}
+.warnbox .wtext b{color:#fff;}
+
+.card{background:var(--s1);border:1px solid var(--s3);border-radius:9px;padding:12px 13px;margin-bottom:5px;
+  cursor:pointer;-webkit-user-select:none;user-select:none;}
+.card.open{background:var(--s2);}
+.card-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.card-left{flex:1;}
+.card-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;}
+.cnum{font-size:10px;color:#252525;font-weight:600;min-width:16px;}
+.cname{font-size:14px;font-weight:600;letter-spacing:-0.2px;}
+.ttag{font-size:8px;font-weight:700;letter-spacing:1.5px;padding:2px 5px;border-radius:3px;}
+.csets{font-size:11px;font-weight:600;}
+.chev{font-size:13px;color:#222;transition:transform 0.2s,color 0.15s;flex-shrink:0;margin-top:2px;}
+.card.open .chev{transform:rotate(180deg);color:#555;}
+
+.cbody{display:none;margin-top:10px;padding-top:10px;border-top:1px solid #1e1e1e;}
+.card.open .cbody{display:block;}
+.ccues{font-size:12px;color:#999;line-height:1.75;margin-bottom:10px;}
+.csteps{font-size:12px;color:#aaa;line-height:1.9;margin-bottom:10px;}
+.csteps ol{padding-left:18px;}
+.csteps li{margin-bottom:6px;}
+
+.cardwarn{display:flex;gap:6px;align-items:flex-start;background:#1a0f0f;border:1px solid #3a2020;
+  border-radius:7px;padding:8px 10px;margin-bottom:10px;}
+.cardwarn .wtext{font-size:11px;color:#d99;line-height:1.6;}
+.cardwarn .wtext b{color:#fff;}
+
+.timer-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;
+  background:#0a0a0a;border:1px solid #1a1a1a;border-radius:10px;padding:14px;margin-bottom:10px;}
+.timer-ring{position:relative;width:100px;height:100px;}
+.timer-ring svg{transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:#1a1a1a;stroke-width:6;}
+.ring-fg{fill:none;stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset 0.5s linear;}
+.timer-display{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-size:22px;font-weight:400;letter-spacing:-0.5px;font-family:inherit;}
+.timer-sublabel{font-size:10px;color:#555;letter-spacing:1px;text-transform:uppercase;}
+.timer-btns{display:flex;gap:8px;}
+.tbtn{padding:8px 18px;border:1px solid #2a2a2a;border-radius:7px;background:#141414;
+  color:var(--text);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;}
+.tbtn.primary{border-color:#3a3a3a;}
+
+.reps-box{display:flex;align-items:center;gap:10px;background:#0a0a0a;
+  border:1px solid #1a1a1a;border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+.reps-icon{font-size:18px;color:#555;}
+.reps-text{font-size:13px;color:#888;line-height:1.5;}
+.reps-bold{color:var(--text);font-weight:600;}
+
+.vlink{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;
+  text-decoration:none;padding:6px 10px;border-radius:6px;background:#141414;border:1px solid #222;color:#e63946;}
+
+.legend-wrap{margin:24px 16px 8px;}
+.legend-toggle{display:flex;align-items:center;justify-content:space-between;
+  padding:9px 12px;background:#111;border:1px solid #1e1e1e;border-radius:9px;cursor:pointer;
+  -webkit-user-select:none;user-select:none;}
+.legend-toggle-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#444;}
+.legend-toggle-chev{font-size:11px;color:#333;transition:transform 0.2s;}
+.legend-toggle.open .legend-toggle-chev{transform:rotate(180deg);}
+.legend-body{display:none;padding:10px 12px;background:#0e0e0e;
+  border:1px solid #1e1e1e;border-top:none;border-bottom-left-radius:9px;border-bottom-right-radius:9px;}
+.legend-body.open{display:flex;flex-wrap:wrap;gap:10px;}
+.li{display:flex;align-items:center;gap:4px;}
+.ltag{font-size:7px;font-weight:700;padding:2px 4px;border-radius:3px;letter-spacing:1px;}
+.ll{font-size:10px;color:#444;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="eyebrow">Operation Transform</div>
+  <div class="ttl">Mobility System</div>
+  <div class="sub">Daily foundation · Gym activation · Tap any exercise to expand</div>
+  <nav class="nav" id="nav"></nav>
+</div>
+
+<div class="content" id="content"></div>
+
+<div class="legend-wrap">
+  <div class="legend-toggle" id="legend-toggle" onclick="toggleLegend()">
+    <span class="legend-toggle-label">Key</span>
+    <span class="legend-toggle-chev">▾</span>
+  </div>
+  <div class="legend-body" id="legend-body">
+    <div class="li"><span class="ltag" style="background:#fde68a;color:#92400e">CAR</span><span class="ll">Joint circles</span></div>
+    <div class="li"><span class="ltag" style="background:#a7f3d0;color:#065f46">ACTIVE</span><span class="ll">Strengthen</span></div>
+    <div class="li"><span class="ltag" style="background:#bfdbfe;color:#1e3a8a">HOLD</span><span class="ll">Hold & breathe</span></div>
+    <div class="li"><span class="ltag" style="background:#e9d5ff;color:#581c87">FLOW</span><span class="ll">Flowing</span></div>
+    <div class="li"><span class="ltag" style="background:#ffe4b5;color:#7a4000">BAND</span><span class="ll">Resistance</span></div>
+    <div class="li"><span class="ltag" style="background:#fecaca;color:#7f1d1d">ELBOW</span><span class="ll">Tennis elbow rehab</span></div>
+  </div>
+</div>
+
+<script>
+const TYPE={
+  cars:   {label:"CAR",   bg:"#fde68a",text:"#92400e"},
+  active: {label:"ACTIVE",bg:"#a7f3d0",text:"#065f46"},
+  passive:{label:"HOLD",  bg:"#bfdbfe",text:"#1e3a8a"},
+  dynamic:{label:"FLOW",  bg:"#e9d5ff",text:"#581c87"},
+  band:   {label:"BAND",  bg:"#ffe4b5",text:"#7a4000"},
+  elbow:  {label:"ELBOW", bg:"#fecaca",text:"#7f1d1d"}
+};
+
+const ROUTINES=[
+{
+  id:"daily",label:"Daily",sublabel:"Every day · No bands needed · Floor based",
+  duration:"~12 min",color:"#2d6a4f",border:"#52b788",
+  intro:"Your everyday foundation. Hips, spine, glutes and ankles — the things that stiffen up from sitting and commuting. Do this regardless of what's training that day.",
+  exercises:[
+    {name:"Cat-Cow",sets:"60 sec",type:"active",timer:60,
+     video:"https://www.youtube.com/results?search_query=cat+cow+stretch+mobility",
+     steps:["Get on all fours, hands directly under shoulders, knees under hips.",
+            "Breathe in: drop your belly toward the floor, lift your chest and tailbone up (this is 'cow').",
+            "Breathe out: round your entire spine upward, tuck your chin to your chest (this is 'cat').",
+            "Move slowly between the two — one full breath per movement.",
+            "Keep going for the full 60 seconds, don't rush it."]},
+    {name:"Thoracic Rotation",sets:"45 sec each side",type:"active",timer:45,sides:true,
+     video:"https://www.youtube.com/results?search_query=thoracic+rotation+all+fours+mobility",
+     steps:["Stay on all fours from the cat-cow position.",
+            "Place one hand gently behind your head, elbow pointing out to the side.",
+            "Rotate that elbow down toward the floor, then open it up toward the ceiling — follow it with your eyes.",
+            "Keep your lower back completely still. All the movement should come from your mid-back.",
+            "Do the full 45 seconds, then switch hands and repeat on the other side."]},
+    {name:"Supine Lumbar Rotation",sets:"60 sec total",type:"active",timer:60,
+     video:"https://www.youtube.com/results?search_query=supine+lumbar+rotation+lower+back+mobility",
+     steps:["Lie flat on your back, knees bent, feet flat on the floor.",
+            "Let both knees fall slowly to one side, only as far as feels comfortable — no forcing.",
+            "Bring them back to the centre, then let them fall to the other side.",
+            "Keep both shoulders flat on the floor the whole time.",
+            "Keep this slow and rhythmic for the full 60 seconds."]},
+    {name:"Hip CARs",sets:"3 circles each direction, each side",type:"cars",timer:150,
+     video:"https://www.youtube.com/results?search_query=hip+CARs+controlled+articular+rotation",
+     steps:["Lie on your side with your bottom leg straight and relaxed.",
+            "Brace your core and glutes hard so your pelvis stays completely still throughout.",
+            "Draw the biggest circle you can with your top knee: bring it toward your chest, then open it out to the ceiling, then extend it back behind you, then sweep it back under to the start.",
+            "That's one circle. Do 3 in that direction, taking about 6-8 seconds per circle.",
+            "Then reverse the direction and do 3 more circles the other way.",
+            "Roll over and repeat the whole thing on your other side."]},
+    {name:"90/90 Hip Stretch",sets:"45 sec each side",type:"passive",timer:45,sides:true,
+     video:"https://www.youtube.com/results?search_query=90+90+hip+stretch+mobility",
+     steps:["Sit on the floor with both legs bent at roughly 90 degrees — front shin pointing one way, back shin pointing the other.",
+            "Sit as tall as you can, hands lightly resting on the floor for balance.",
+            "Lean your torso gently forward over your front shin until you feel a stretch.",
+            "Hold for 45 seconds, keeping your spine as straight as possible.",
+            "Swing your legs around ('windshield wiper' motion) to switch sides and repeat."]},
+    {name:"Glute Bridge with Pause",sets:"10 reps",type:"active",reps:"10 reps · hold 2 sec hard squeeze at the top",
+     video:"https://www.youtube.com/results?search_query=glute+bridge+form+tutorial",
+     steps:["Lie on your back, knees bent, feet flat on the floor, hip-width apart.",
+            "Drive your hips up toward the ceiling by squeezing your glutes hard.",
+            "At the top, hold and squeeze for 2 full seconds.",
+            "Lower back down slowly and with control — don't just drop.",
+            "Repeat for 10 reps."]},
+    {name:"Dead Bug",sets:"6 each side",type:"active",reps:"6 reps each side · slow and controlled",
+     video:"https://www.youtube.com/results?search_query=dead+bug+exercise+core+tutorial",
+     steps:["Lie on your back, arms reaching straight up to the ceiling, knees bent at 90 degrees in the air.",
+            "Press your lower back flat into the floor and keep it pinned there the entire time.",
+            "Slowly lower one arm straight back overhead while extending the opposite leg out straight, hovering just above the floor.",
+            "Bring them back to the start and swap sides.",
+            "If your lower back lifts off the floor at any point, you've gone too far — pull back the range."]},
+    {name:"Kneeling Hip Flexor Stretch",sets:"45 sec each side",type:"passive",timer:45,sides:true,
+     video:"https://www.youtube.com/results?search_query=kneeling+hip+flexor+stretch+tutorial",
+     steps:["Kneel down with one knee on the floor (use a cushion if needed) and the other foot planted in front of you.",
+            "Squeeze the glute of your back leg hard — this is what actually opens up the hip flexor.",
+            "Drive your hips gently forward while keeping your torso upright and tall.",
+            "Hold for 45 seconds, then switch legs."]},
+    {name:"Pigeon Pose",sets:"60 sec each side",type:"passive",timer:60,sides:true,
+     video:"https://www.youtube.com/results?search_query=pigeon+pose+hip+stretch+tutorial",
+     steps:["Start on all fours, then bring one shin forward at an angle across your body.",
+            "Slide your other leg straight back behind you and lower your hips toward the floor.",
+            "Stay propped up on your hands, or lower down onto your forearms if it's comfortable.",
+            "Breathe slowly and hold for the full 60 seconds — the muscle needs time to actually release.",
+            "Switch sides and repeat."]},
+    {name:"Prone Press-Up (Cobra)",sets:"60 sec",type:"passive",timer:60,
+     video:"https://www.youtube.com/results?search_query=cobra+stretch+prone+press+up",
+     steps:["Lie face down on the floor, hands placed flat under your shoulders.",
+            "Keeping your hips and lower body relaxed on the floor, press your chest up by straightening your arms.",
+            "Go only as high as feels comfortable — you should feel a gentle stretch in your stomach and lower back, not pain.",
+            "Hold for 5 seconds, lower back down, then repeat for the full 60 seconds.",
+            "This counteracts the forward-hunched position your body holds carrying extra weight all day."]},
+    {name:"Ankle Circles",sets:"10 each direction, each foot",type:"active",reps:"10 circles each direction, each foot",
+     video:"https://www.youtube.com/results?search_query=ankle+mobility+circles+squat+depth",
+     steps:["Sit or stand and lift one foot slightly off the ground.",
+            "Draw the largest, slowest circles you can with your toes, like you're tracing a big circle on the floor.",
+            "Do 10 circles one direction, then 10 circles the other direction.",
+            "Switch to the other foot and repeat.",
+            "This directly helps your squat depth — tight ankles force your knees and lower back to compensate."]}
+  ]
+},
+{
+  id:"upper",label:"Pre-Upper",sublabel:"Before Upper A / Upper B / Saturday Boxing · Bands + elbow rehab",
+  duration:"~8-9 min",color:"#9b2226",border:"#e07070",
+  intro:"Shoulders primed, elbow specifically rehabbed. Your right elbow is at a 5-6/10 — this routine is weighted toward genuinely fixing that, not just a token warm-up.",
+  exercises:[
+    {name:"Band Pull-Aparts",sets:"2 × 15 reps",type:"band",reps:"2 sets of 15 · squeeze hard at end range",
+     video:"https://www.youtube.com/results?search_query=band+pull+aparts+shoulder+health",
+     steps:["Hold a light resistance band at shoulder height with both hands, arms straight out in front of you.",
+            "Pull the band apart by drawing your hands out to the sides, squeezing your shoulder blades together hard at the end.",
+            "Slowly control the band back to the start — don't let it snap back.",
+            "Repeat for 2 sets of 15 reps."]},
+    {name:"Band External Rotation",sets:"12 reps each side",type:"band",reps:"12 each side · 2 sec out, 2 sec back",
+     video:"https://www.youtube.com/results?search_query=band+external+rotation+rotator+cuff",
+     steps:["Anchor the band low (around a rack post or hold one end with your other hand).",
+            "Keep your elbow bent at 90 degrees and pinned to your side throughout.",
+            "Rotate your forearm outward against the band's resistance, taking about 2 seconds.",
+            "Slowly return to the start, taking another 2 seconds.",
+            "Do 12 reps, then switch arms."]},
+    {name:"Band Face Pulls",sets:"2 × 15 reps",type:"band",reps:"2 sets of 15 · elbows high",
+     video:"https://www.youtube.com/results?search_query=band+face+pulls+form+tutorial",
+     steps:["Anchor the band at roughly face height.",
+            "Pull both ends toward your forehead, letting your elbows flare out wide and high — hands should finish beside your ears.",
+            "Squeeze your rear shoulders hard at the end position.",
+            "Control the return slowly.",
+            "Repeat for 2 sets of 15."]},
+    {name:"Wrist Extensor Isometric Hold",sets:"5 holds",type:"elbow",timer:35,
+     warn:"This is the main exercise for your elbow. Dull ache or burning is fine and expected — stop immediately if you feel anything sharp.",
+     video:"https://www.youtube.com/results?search_query=wrist+extensor+isometric+hold+tennis+elbow",
+     steps:["Sit down and rest your forearm flat on a bench or your thigh, palm facing down, hand hanging slightly off the edge.",
+            "Make a loose fist.",
+            "Using your other hand, press down gently on the back of your fist while you resist by trying to lift your hand upward against it.",
+            "Nothing should actually move — this is a pure hold, not a lift.",
+            "Push at about 6-7 out of 10 effort and hold for 30-45 seconds.",
+            "Rest a full 60 seconds, then repeat. Do this for a total of 5 holds."]},
+    {name:"Grip Isometric (Plate Pinch)",sets:"3 holds",type:"elbow",timer:20,
+     video:"https://www.youtube.com/results?search_query=plate+pinch+grip+strength+exercise",
+     steps:["Pick up a small weight plate (5-10kg) by pinching it between your thumb on one side and your fingers on the other — don't hook your fingers around the edge.",
+            "Simply hold it steady at your side without moving.",
+            "Hold for 20 seconds to start, building up to 30 seconds over the coming weeks.",
+            "Repeat for 3 holds total, resting about 30-60 sec between.",
+            "No towel or extra equipment needed — any small plate near the rack works, or use a dumbbell handle instead."]},
+    {name:"Forearm Pronation/Supination",sets:"3 × 15 each direction",type:"elbow",reps:"3 sets of 15 each direction · slow and controlled",
+     video:"https://www.youtube.com/results?search_query=forearm+pronation+supination+exercise+elbow",
+     steps:["Hold a light dumbbell (0.5-1kg) or any light weight, elbow bent at 90 degrees and pinned to your side.",
+            "Slowly rotate your forearm so your palm turns from facing up to facing down, taking about 3 seconds.",
+            "Then slowly rotate back the other way, palm up again, another 3 seconds.",
+            "That's one rep. Do 15 in a row, fully controlled — no swinging.",
+            "Complete 3 sets."]},
+    {name:"Wrist Flexor + Extensor Stretch",sets:"30 sec each side",type:"passive",timer:30,sides:true,
+     video:"https://www.youtube.com/results?search_query=wrist+flexor+extensor+stretch+forearm",
+     steps:["Hold one arm out straight, palm facing up.",
+            "With your other hand, gently pull your fingers back toward you. Hold 15 seconds — this stretches the flexor side.",
+            "Now flip your palm to face down, and gently push the back of your hand downward. Hold 15 seconds — this stretches the extensor side, the one connected to your elbow pain.",
+            "Switch to the other arm and repeat both stretches."]},
+    {name:"Shoulder CAR",sets:"1 circle each direction, each side",type:"cars",reps:"1 slow circle each direction, each side",
+     video:"https://www.youtube.com/results?search_query=shoulder+CARs+controlled+articular+rotation",
+     steps:["Stand tall with your core gently braced.",
+            "Raise one arm and draw the biggest, slowest circle you can — forward, up overhead, around behind you, and back down.",
+            "Keep your shoulder blade pulled back gently, don't let your shoulder hike up toward your ear.",
+            "Do one full circle each direction, then switch arms and repeat."]}
+  ]
+},
+{
+  id:"lower",label:"Pre-Lower",sublabel:"Before Lower A / Lower B · Bands needed",
+  duration:"~7 min",color:"#7a3a00",border:"#e8a070",
+  intro:"Glutes switched on, hips opened, ankles ready for depth. Given how tight your lower body is, treat this as essential, not optional.",
+  exercises:[
+    {name:"Glute Bridge with Band",sets:"12 reps",type:"band",reps:"12 reps · 2 sec squeeze at top · push knees out",
+     video:"https://www.youtube.com/results?search_query=banded+glute+bridge+activation",
+     steps:["Loop a light resistance band just above your knees.",
+            "Lie on your back, knees bent, feet flat on the floor.",
+            "Drive your hips up toward the ceiling, pressing your knees outward against the band the whole time.",
+            "Squeeze hard at the top for 2 seconds.",
+            "Lower with control and repeat for 12 reps."]},
+    {name:"Lateral Band Walks",sets:"10 steps each direction",type:"band",reps:"10 steps each direction · stay low",
+     video:"https://www.youtube.com/results?search_query=lateral+band+walks+glute+activation",
+     steps:["Loop the band just above your knees.",
+            "Drop into a slight squat position and stay there for the whole exercise.",
+            "Take 10 steps sideways in one direction, keeping tension on the band.",
+            "Take 10 steps back the other way.",
+            "Keep your toes pointing forward — don't let the band pull your knees inward."]},
+    {name:"Hip Flexor Pulse",sets:"20 pulses each side",type:"active",reps:"20 small pulses each side · squeeze glute throughout",
+     video:"https://www.youtube.com/results?search_query=kneeling+hip+flexor+pulse+activation",
+     steps:["Get into a kneeling lunge position — one knee down, other foot planted in front.",
+            "Squeeze the glute of your back leg hard.",
+            "While squeezing, make small, controlled pulsing movements driving your hip forward — just an inch of movement.",
+            "Do 20 small pulses, then hold the end position for 5 seconds.",
+            "Switch sides and repeat."]},
+    {name:"Lateral Lunge with Pulse",sets:"8 reps each side",type:"dynamic",reps:"8 each side · pause and 2 pulses at the bottom",
+     video:"https://www.youtube.com/results?search_query=lateral+lunge+adductor+stretch+mobility",
+     steps:["Stand tall, then step wide out to one side and sink your weight into that hip, bending that knee.",
+            "Keep your other leg straight with that foot flat on the floor.",
+            "At the bottom of the movement, do 2 small pulses going slightly deeper.",
+            "Push back up to standing.",
+            "Repeat for 8 reps, then switch sides."]},
+    {name:"Ankle Circles",sets:"10 each direction, each ankle",type:"active",reps:"10 circles each direction, each ankle",
+     video:"https://www.youtube.com/results?search_query=ankle+mobility+circles+squat+depth",
+     steps:["Lift one foot slightly off the ground.",
+            "Draw the biggest, slowest circles you can with your toes.",
+            "10 circles one direction, then 10 the other direction.",
+            "Switch feet and repeat."]},
+    {name:"Deep Squat Hold (Heels Elevated)",sets:"2 min total",type:"passive",timer:120,
+     video:"https://www.youtube.com/results?search_query=deep+squat+hold+heel+elevated+ankle+mobility",
+     steps:["Place a small plate or thick book under your heels — about 2cm thick.",
+            "Hold onto something solid in front of you (a rack, a doorframe) for balance.",
+            "Lower yourself down into the deepest squat position you can manage, keeping your heels down on the elevation.",
+            "Keep your chest as upright as possible.",
+            "Gently shift your weight side to side to work into the stretch.",
+            "Hold for the full 2 minutes, breathing steadily."]}
+  ]
+}
+];
+
+let timers={};
+
+function fmt(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
+
+function startTimer(key,secs,color){
+  if(timers[key]&&timers[key].running){clearInterval(timers[key].interval);timers[key].running=false;renderTimerUI(key,color);return;}
+  if(!timers[key])timers[key]={remaining:secs,total:secs,running:false};
+  if(timers[key].remaining<=0)timers[key].remaining=secs;
+  timers[key].running=true;
+  timers[key].interval=setInterval(()=>{
+    timers[key].remaining--;
+    renderTimerUI(key,color);
+    if(timers[key].remaining<=0){clearInterval(timers[key].interval);timers[key].running=false;}
+  },1000);
+  renderTimerUI(key,color);
+}
+
+function resetTimer(key,secs,color){
+  if(timers[key])clearInterval(timers[key].interval);
+  timers[key]={remaining:secs,total:secs,running:false};
+  renderTimerUI(key,color);
+}
+
+function renderTimerUI(key,color){
+  const wrap=document.getElementById("tw-"+key);
+  if(!wrap)return;
+  const t=timers[key];
+  const pct=t.remaining/t.total;
+  const r=44,circ=2*Math.PI*r;
+  const isDone=t.remaining<=0;
+  const isRunning=t.running;
+  wrap.querySelector(".ring-fg").style.strokeDashoffset=circ*(1-pct);
+  wrap.querySelector(".ring-fg").style.stroke=isDone?"#2d6a4f":color;
+  wrap.querySelector(".timer-display").textContent=isDone?"✓":fmt(t.remaining);
+  wrap.querySelector(".timer-display").style.color=isDone?"#2d6a4f":color;
+  wrap.querySelector(".tbtn.primary").textContent=isRunning?"Pause":(isDone?"Restart":"Start");
+}
+
+function buildTimer(key,secs,color,sides){
+  const circ=2*Math.PI*44;
+  if(!timers[key])timers[key]={remaining:secs,total:secs,running:false};
+  return `<div class="timer-wrap" id="tw-${key}">
+    <div class="timer-ring">
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle class="ring-bg" cx="50" cy="50" r="44"/>
+        <circle class="ring-fg" cx="50" cy="50" r="44"
+          style="stroke:${color};stroke-dasharray:${circ};stroke-dashoffset:0;"/>
+      </svg>
+      <div class="timer-display" style="color:${color}">${fmt(secs)}</div>
+    </div>
+    ${sides?`<div class="timer-sublabel">Timer per side</div>`:""}
+    <div class="timer-btns">
+      <button class="tbtn primary" onclick="startTimer('${key}',${secs},'${color}')">Start</button>
+      <button class="tbtn" onclick="resetTimer('${key}',${secs},'${color}')">Reset</button>
+    </div>
+  </div>`;
+}
+
+function buildReps(repsText){
+  return `<div class="reps-box"><div class="reps-icon">↻</div>
+    <div class="reps-text"><span class="reps-bold">${repsText}</span></div></div>`;
+}
+
+function buildCardWarn(text){
+  return `<div class="cardwarn"><span>⚠️</span><div class="wtext">${text}</div></div>`;
+}
+
+let activeId="daily";
+
+function render(){
+  const routine=ROUTINES.find(r=>r.id===activeId);
+  document.getElementById("nav").innerHTML=ROUTINES.map(r=>`
+    <button class="nb ${r.id===activeId?"on":""}"
+      style="${r.id===activeId?`color:${r.color};border-bottom-color:${r.color}`:""}"
+      onclick="switchTo('${r.id}')">${r.label}</button>`).join("");
+
+  let html=`<div class="rmeta">
+    <div class="rlabel" style="color:${routine.color}">${routine.sublabel}</div>
+    <div class="rstats">${routine.duration}</div>
+    <div class="rintro">${routine.intro}</div>
+  </div>`;
+
+  if(routine.id==="upper"){
+    html+=`<div class="warnbox"><span class="wicon">⚠️</span>
+      <div class="wtext"><b>Elbow rule:</b> a dull ache or burning sensation during the isometric holds is normal and expected. If you feel anything sharp or stabbing, stop that exercise immediately.</div>
+    </div>`;
+  }
+
+  routine.exercises.forEach((ex,i)=>{
+    const t=TYPE[ex.type];
+    const key=`${activeId}-${i}`;
+    const timerHTML=ex.timer?buildTimer(key,ex.timer,routine.color,ex.sides||false):"";
+    const repsHTML=ex.reps?buildReps(ex.reps):"";
+    const warnHTML=ex.warn?buildCardWarn(ex.warn):"";
+    const stepsHTML=ex.steps?`<div class="csteps"><ol>${ex.steps.map(s=>`<li>${s}</li>`).join("")}</ol></div>`:"";
+    html+=`<div class="card" id="card-${key}" onclick="toggleCard('${key}','${routine.border}')">
+      <div class="card-hdr">
+        <div class="card-left">
+          <div class="card-top">
+            <span class="cnum">${String(i+1).padStart(2,"0")}</span>
+            <span class="cname">${ex.name}</span>
+            <span class="ttag" style="background:${t.bg};color:${t.text}">${t.label}</span>
+          </div>
+          <div class="csets" style="color:${routine.color}">${ex.sets}</div>
+        </div>
+        <div class="chev">▾</div>
+      </div>
+      <div class="cbody">${warnHTML}${timerHTML}${repsHTML}${stepsHTML}
+        <a class="vlink" href="${ex.video}" target="_blank" rel="noopener">▶ Watch tutorial</a>
+      </div>
+    </div>`;
+  });
+
+  document.getElementById("content").innerHTML=html;
+
+  routine.exercises.forEach((ex,i)=>{
+    const key=`${activeId}-${i}`;
+    if(ex.timer)renderTimerUI(key,routine.color);
+  });
+}
+
+function switchTo(id){activeId=id;render();window.scrollTo(0,0);}
+
+function toggleCard(key,border){
+  const card=document.getElementById("card-"+key);
+  card.classList.toggle("open");
+  card.style.borderColor=card.classList.contains("open")?border:"";
+}
+
+function toggleLegend(){
+  const t=document.getElementById("legend-toggle");
+  const b=document.getElementById("legend-body");
+  t.classList.toggle("open");
+  b.classList.toggle("open");
+}
+
+render();
+</script>
+</body>
+</html>
